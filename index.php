@@ -1,144 +1,164 @@
-<style>
-.red-7{
-    color: #F00;
-}
-.center{
-    margin: 0 auto;
-    text-align: center;
-    width: 500px;
-    height: 45px;
-}
-.common_back{
-    background: #000;
-    width: 100px;
-    height: 30px;
-    border-radius: 5px;
-}
-
-</style>
 
 
-<?php 
+<form action="<?php echo $_SERVER['PHP_SELF'] ?>" method="post" >
 
-$user_balance = 100;
-$bet_amount = 10;
+Please Input the Grid Number <input type="text" name="number_of_grids" required />
 
-session_start();
-
-if(!isset($_SESSION['user_balance'])){
-    $_SESSION['user_balance'] = 100;
-}
-
-
-
-echo "<h1 align='center'> Welcome to Lucky <span class='red-7'>7</span> Game </h1>";
-echo "<h3 align='center'>Place Your bet (Rs <span class='red-7'> 10</span>)</h3>";
-
-?>
-<form name='game' method='post' action="test.php" >
-<div class='center' >
-    <input type='submit' class='below-7 common_back red-7' name='below-7' value='[Below 7]' />
-    <input type='submit' name='lucky-7' class='below-7 common_back red-7' value="[Lucky 7]" />
-    <input type='submit' class='above-7 red-7 common_back' name='above-7' value="[Above 7]" />
-    <input type='submit' class='play red-7 common_back' name='play' value="[Play]" />
-
-    <input type='submit' class='common_back red-7' name='reset' value='[Reset]' />
-    <input type='submit' name='continue' class='common_back red-7' value="[Continue Playing]" />
-</div>
+<input type="submit" name='submit'>
 </form>
 
-
-<div class="center" >
 <?php
-$dice1 = $dice2 = $total = $winning_amount = $new_updated_balance = 0;
-$message = '';
-$bet_amount = 10;
-if(isset($_POST['below-7']) ){
+include_once('board.php');
+include_once('game.php');
+include_once('players.php');
 
-    $dice1 = rand(1,10);
-    $dice2 = rand(1,10);
-    $total = $dice1+$dice2;
+$size = 0;
 
-    if($total<7){
-       
-        $message = "Congratulation You won the game!";
-        $new_updated_balance = updateWinnings(20,'win',$_SESSION['user_balance']);
+if(isset($_POST['submit'])){
+
+    if(isset($_POST['number_of_grids'])){
+
+        $table = $tr = $td = '';
+        $total_grid = $size = $_POST['number_of_grids'];
+        // echo $table .= "<table border=1>";
+        // echo $table2 = "<table border=1><tr> <th>Player No</th> <th>Dice Roll History</th> <th>Position History</th> <th>Player No</th></tr>";
+
+        // for ($i=0; $i <$total_grid ; $i++) { 
+            
+        //    echo $tr ="<tr>";
+
+        //    for ($j=0; $j <$total_grid  ; $j++) { 
+        //         echo $td ='<td style="width: 50px; height: 50px">';
+        //         echo $td ='</td>';
+        //    }
+           
+        //    echo $tr ="</tr>";
+
+        // }
+
+        // for ($i=0; $i <$total_grid ; $i++) { 
+            
+        //     echo $tr ="<tr>";
+ 
+        //     for ($j=0; $j <$total_grid  ; $j++) { 
+        //          echo $td ='<td>';
+        //          echo $td ='</td>';
+        //     }
+            
+        //     echo $tr ="</tr>";
+ 
+        //  }
+
+        // echo $table2_close = "</table>";
+        // echo $table_close = "</table>";
+
     }
-    else{
-        $new_updated_balance = updateWinnings(10,'lost',$_SESSION['user_balance']);
-    }
+}
 
-} else if(isset($_POST['lucky-7']) ){
+$snakeLadders = [1=>3,4=>2,5=>2,6=>8,3=>6];
+$size = $size * $size;
+$board = new Board($size,$snakeLadders);
+$players = ['Player 1','Player 2','Player 3'];
 
-    $dice1 = rand(1,10);
-    $dice2 = rand(1,10);
-    $total = $dice1+$dice2;
+$game = new Game($board,$players);
+$results = $game->Play();
+$new_array = [];
 
-    if($total==7){
-        $message = "Congratulation You won Lucky 7 game!";
-        $new_updated_balance = updateWinnings(30,'win',$_SESSION['user_balance']);
-    }
-    else{
-        $new_updated_balance = updateWinnings(10,'lost',$_SESSION['user_balance']);
-    }
-
-} else if(isset($_POST['above-7']) ){
+if(!empty($results)){
     
-    $dice1 = rand(1,10);
-    $dice2 = rand(1,10);
-    $total = $dice1+$dice2;
+    echo "<table border=1><tr> <th>Player</th> <th>Dice Roll History</th> <th>Position History</th> <th>Winner Status</th></tr>";
 
-    if($total>7){
-        $message = "Congratulation You won Lucky 7 game!";
-        $new_updated_balance = updateWinnings(20,'win',$_SESSION['user_balance']);
-    }
-    else{
-        $new_updated_balance = updateWinnings(10,'lost',$_SESSION['user_balance']);
-    }
+        $winner = [];
+        $player1_dice = $p1_pos = $p2_pos = $p3_pos = $player2_dice = $player3_dice = '';
+        foreach ($results as $key1 => $value1) {
+           
+            foreach ($value1 as $key2 => $value2) {
 
-} else if(isset($_POST['play']) ){
-    $new_updated_balance = $_SESSION['user_balance'];
+                if($value1['player']  == 'Player 1' && $key2 == 'dice'){
+                    $player1_dice .=$value2.",";
+                }
+                if($value1['player'] == 'Player 2' && $key2 == 'dice'){
+                    $player2_dice .=$value2.",";
+                }
+                if($value1['player'] == 'Player 3' && $key2 == 'dice'){
+                    $player3_dice .=$value2.",";
+                }
+
+                if($value1['player']  == 'Player 1' && $key2 == 'position_history'){
+                    $p1_pos .=$value2.",";
+                }
+                if($value1['player']  == 'Player 2' && $key2 == 'position_history'){
+                    $p2_pos .=$value2.",";
+                }
+                if($value1['player'] == 'Player 3' && $key2 == 'position_history'){
+                    $p3_pos .=$value2.",";
+                }
+
+                if($key2 == 'winner' && $value2 ){
+                    $winner = $value1;
+                }
+            }        
+        }
+
+       $player1_dice = trim($player1_dice,',');
+       $p1_pos = trim($p1_pos,',');
+       $player2_dice = trim($player2_dice,',');
+       $player3_dice = trim($player3_dice,',');
+       $p3_pos = trim($p3_pos,',');
+       $p2_pos = trim($p2_pos,',');
+         
+        foreach ($players as $key => $value) {
+
+            echo "<tr>";
+            echo "<td> $value </td>";
+
+            if($value == 'Player 1'){
+                echo "<td> $player1_dice </td>";
+                echo "<td> $p1_pos </td>";
+                
+                if(!empty($winner) && $winner['player'] == 'Player 1'){
+                    echo "<td> Winner  </td>";
+                }
+                else{
+                    echo "<td>   </td>";
+                }
+               
+               
+            }
+            if($value == 'Player 2' ){
+                echo "<td> $player2_dice </td>";
+                echo "<td> $p2_pos </td>";
+
+                if(!empty($winner) && $winner['player'] == 'Player 2'){
+                    echo "<td> Winner  </td>";
+                }
+                else{
+                    echo "<td>   </td>";
+                }
+            }
+            if($value == 'Player 3' ){
+                echo "<td> $player3_dice </td>";
+                echo "<td> $p3_pos </td>";
+
+                if(!empty($winner) && $winner['player'] == 'Player 3'){
+                    echo "<td> Winner  </td>";
+                }
+                else{
+                    echo "<td>   </td>";
+                }
+            }
+            
+            
+            echo  "</tr>";
+            
+        }
+
+       
+  
+    echo "</table>";
 }
-else if(isset($_POST['reset']) ){
-    session_destroy();
-    session_start();
-    $_SESSION['user_balance'] = 100; //reset to start
-    $message = 'Balance Has been updated';
-    $dice1 = $dice2 = $total = 0;
-    $new_updated_balance = 100;
-}
-else if(isset($_POST['continue']) ){
-    $new_updated_balance = $_SESSION['user_balance'];
-}
 
-echo "<h4>Game Results</h4>";
-echo "<h2>$message</h2>";
-echo "<p>Dice 1 Number $dice1 </p>";
-echo "<p>Dice 2 Number $dice2 </p>";
-echo "<p>Total Amount $total </p>";
-echo "<p>Available Balance in your account is : ".$new_updated_balance." </p> ";
 
-function updateWinnings($winning,$condition,$sess_bal){
-    $new_amount = 0;
-   // echo  "Before Logic ".$sess_bal;
-    if($condition == 'lost'){
-        $new_balance =  $sess_bal - $winning;
-        $new_amount = $new_balance;
-        $_SESSION['user_balance'] = $new_amount;
-    }
-    else{
-        $sess_bal = $sess_bal - 10; //remove the betting amount 
-        $new_balance = $sess_bal + $winning;
-        $new_amount = $new_balance;
-        $_SESSION['user_balance'] = $new_amount;
-    }
-
-    //echo  "After Logic ".$_SESSION['user_balance'];
-    return $new_amount;
-}
 ?>
-</div>
-<br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
-<div class='center' >
-   
-</div>
+
+
